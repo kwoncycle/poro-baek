@@ -1,0 +1,11 @@
+DUP
+MUL
+NUM 2
+ADD
+END
+3
+1
+10
+50
+
+TLE가 안날수 있나 이게
