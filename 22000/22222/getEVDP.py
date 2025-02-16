@@ -1,12 +1,10 @@
 from decimal import *
 from tqdm import tqdm
 
-
-
 with open("MAXN", "r") as f:
     MAX_N = int(f.readline())
 
-getcontext().prec = MAX_N * 10
+getcontext().prec = MAX_N * 30
 
 Cb = [[0 for _ in range(MAX_N + 1)] for _ in range(MAX_N + 1)]
 
