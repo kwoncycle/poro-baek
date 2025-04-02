@@ -2,15 +2,14 @@
 using namespace std;
  
 #define ll long long
-#define pii pair<ll,ll>
+#define pii pair<int,int>
 #define pll pair<ll,ll>
 #define X first
 #define Y second
-#define CNT_LOWER(v,n) (ll)(lower_bound((v).begin(),(v).end(),(n))-(v).begin())
-#define CNT_UPPER(v,n) (ll)(upper_bound((v).begin(),(v).end(),(n))-(v).begin())
-#define A2 array<ll, 2>
-// CNT_LOWER: number of element in v smaller than n
-// CNT_UPPER: number of element in v smaller or same than n
+#define CNT_LOWER(v,n) (int)(lower_bound((v).begin(),(v).end(),(n))-(v).begin())
+#define CNT_UPPER(v,n) (int)(upper_bound((v).begin(),(v).end(),(n))-(v).begin())
+#define all(x) (x).begin(), (x).end()
+
 
 struct Edge{
     ll u, v, cap, cur;
@@ -24,6 +23,7 @@ struct Dinic{
     ll n, start, end; // |node|, flow start, flow end
     vector<ll> level, DFS_order;
     ll flow = 0;
+
 public:
     Dinic(ll _n, ll _start, ll _end, vector<Edge> &_Edge) : n(_n), start(_start), end(_end){
         graph = vector<vector<ll>>(n+1);
@@ -103,5 +103,57 @@ public:
 // requires vector<Edge>
 
 int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr); cout.tie(nullptr);
+    int n, m; cin >> n >> m;
+    vector<Edge> v;
+    int st = 0, ed = 2*n + 1;
+    for(int i=0; i<m; i++){
+        int a, b; cin >> a >> b;
+        b += n;
+        v.push_back(Edge(a, b, 1, 0));
+    }
+    for(int i=1; i<=n; i++){
+        v.push_back(Edge(st, i, 1, 0));
+        v.push_back(Edge(i+n, ed, 1, 0));
+    }
+
+    Dinic D(ed + 1, st, ed, v);
+    if(D.flow == n){
+        cout << "-1\n"; return 0;
+    }
+
+    int non;
+    for(int i:D.graph[st]){
+        if(D.edges[i].cap != D.edges[i].cur){
+            non = D.edges[i].v; break;
+        }
+    }
+
+    vector<int> check(2*n+3, 0);
+    queue<int> q;
+    q.push(non);
+    check[non] = 1;
+    while(!q.empty()){
+        int node = q.front(); q.pop();
+        for(int i:D.graph[node]){
+            if(D.edges[i].cap != D.edges[i].cur){
+                if(!check[D.edges[i].v]){
+                    q.push(D.edges[i].v); check[D.edges[i].v] = 1;
+                }
+            }
+        }
+    }
+
+    int cnt = 0;
+    for(int i=1; i<=n; i++){
+        if(check[i]) cnt++;
+    }
+    cout << cnt << "\n";
+    for(int i=1; i<=n; i++){
+        if(check[i]) cout << i << " ";
+    }
+    cout << "\n";
+
     return 0;
 }

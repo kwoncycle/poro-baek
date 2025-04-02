@@ -8,8 +8,6 @@ using namespace std;
 #define CNT_UPPER(v,n) (int)(upper_bound((v).begin(),(v).end(),(n))-(v).begin())
 #define all(x) (x).begin(), (x).end()
 
-
-
 class djs
 {
     int n;
@@ -53,57 +51,71 @@ struct solve{
         }
 
         for(auto &[u, v, c]:edge){
-            //if(DJS.find(u) == DJS.find(s)) u = s;
-            //if(DJS.find(v) == DJS.find(s)) v = s;
             graph[u].push_back({c, v});
             graph[v].push_back({c, u});
         }
 
         if(DJS.find(s) == DJS.find(e)){
-            assert(false);
             cout << "0\n"; return;
         }
 
-        for(int i=1; i<=n; i++){
-            sort(all(graph[i]));
-        }
-
-        queue<int> q;
-        vector<int> dst(n+1, 0x3f3f3f3f);
+        vector<int> q;
         vector<pii> par(n+1, {-1, -1});
+        vector<int> level(n+1, -1);
         for(int i=1; i<=n; i++){
             if(DJS.find(i) == DJS.find(s)){
-                dst[i] = 0;
-                q.push(i);
+                q.push_back(i);
+                level[i] = s;
             }
         }
-        while(!q.empty()){
-            int i = q.front(); q.pop();
-            for(auto [v, j]:graph[i]){
-                if(dst[j] == 0x3f3f3f3f){
-                    dst[j] = dst[i] + 1;
-                    par[j] = {v, i};
-                    q.push(j);
+        
+        int id = 0;
+        vector<array<int, 2>> V0, V1;
+        while(id < (int)q.size()){
+            int i1 = id;
+            while(i1 < (int)q.size() and level[q[i1]] == level[q[id]]){
+                for(auto [val, j]:graph[q[i1]]){
+                    if(val == 0 and level[j] == -1){
+                        V0.push_back({j, q[i1]});
+                    }
+                    else if(val == 1 and level[j] == -1){
+                        V1.push_back({j, q[i1]});
+                    }
                 }
-                else assert(dst[j] <= dst[i] + 1);
+                i1++;
             }
+            int lv = -1;
+            for(auto &[i, before]:V0){
+                if(level[i] == -1){
+                    if(lv == -1) lv = i;
+                    level[i] = lv;
+                    par[i] = {0, before};
+                    q.push_back(i);
+                }
+            }
+            lv = -1;
+            for(auto &[i, before]:V1){
+                if(level[i] == -1){
+                    if(lv == -1) lv = i;
+                    level[i] = lv;
+                    par[i] = {1, before};
+                    q.push_back(i);
+                }
+            }
+            id = i1;
+            V0.clear();
+            V1.clear();
         }
         vector<int> ans;
-        while(dst[e] > 0){
-            assert(par[e].X != -1);
-            assert(e != -1);
+        while(level[e] != level[s]){
             ans.push_back(par[e].X);
             e = par[e].Y;
         }
-        assert(dst[e] == 0 and DJS.find(e) == DJS.find(s));
         reverse(ans.begin(), ans.end());
-        assert(!ans.empty());
-        assert(ans[0]);
-        //for(int i=1; i<=n; i++) cout << dst[i] << " "; cout << "\n";
         for(int i:ans) {
-            assert(i >= 0 and i <= 1);
             cout << i;
-        } cout << "\n";
+        } 
+        cout << "\n";
     }
 };
 
@@ -111,6 +123,6 @@ struct solve{
 int main(){
     ios::sync_with_stdio(false);
     cin.tie(nullptr); cout.tie(nullptr);
-    solve ss;
+    solve s;
     return 0;
 }

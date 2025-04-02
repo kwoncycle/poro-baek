@@ -17,17 +17,15 @@ using namespace std;
 class SegTree{
 public:   
     int n;
-    vector<ll> arr, segtree, lazy;
+    vector<ll> segtree, lazy;
 
 
-    SegTree(int n_input, vector<ll> &input_arr){
+    SegTree(int n_input){
         n = n_input;
-        arr.resize(n);
-        for(int i=0; i<n; i++) arr[i] = input_arr[i];
         lazy = vector<ll>(4*n+5, 0);
         segtree = vector<ll>(4*n+5, 0);
-        init(1, 0, n-1);
     }
+    /*
     void init(int node, int s, int e){
         if(s == e){
             segtree[node] = arr[s];
@@ -37,7 +35,8 @@ public:
         init(node * 2 + 1, (s + e)/2 + 1, e);
         segtree[node] = segtree[node * 2] + segtree[node * 2 + 1];
         return;
-    }
+    }*/
+    
     // add s~e += target
     void update_range(int i1, int i2, ll target){
         update_segtree(1, 0, n-1, i1, i2, target);

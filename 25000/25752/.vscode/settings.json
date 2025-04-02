@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.sage": "python",
+        "iostream": "cpp",
+        "array": "cpp"
+    }
+}
