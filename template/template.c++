@@ -1,9 +1,10 @@
 #include <bits/stdc++.h>
 using namespace std;
  
-#define ll long long
-#define pii pair<int,int>
-#define pll pair<ll,ll>
+typedef long long ll;
+typedef pair<int,int> pii;
+typedef pair<ll,ll> pll;
+
 #define X first
 #define Y second
 #define CNT_LOWER(v,n) (int)(lower_bound((v).begin(),(v).end(),(n))-(v).begin())

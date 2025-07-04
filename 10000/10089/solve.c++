@@ -2,23 +2,23 @@
 using namespace std;
  
 #define ll long long
-#define pii pair<int,int>
+#define pii pair<ll,ll>
 #define pll pair<ll,ll>
 #define X first
 #define Y second
-#define CNT_LOWER(v,n) (int)(lower_bound((v).begin(),(v).end(),(n))-(v).begin())
-#define CNT_UPPER(v,n) (int)(upper_bound((v).begin(),(v).end(),(n))-(v).begin())
+#define CNT_LOWER(v,n) (ll)(lower_bound((v).begin(),(v).end(),(n))-(v).begin())
+#define CNT_UPPER(v,n) (ll)(upper_bound((v).begin(),(v).end(),(n))-(v).begin())
 #define all(x) (x).begin(), (x).end()
 
 struct SegTree{
-    int n;
-    vector<int> tree, lazy, who;
-    SegTree(int _n) : n(_n){
+    ll n;
+    vector<ll> tree, lazy, who;
+    SegTree(ll _n) : n(_n){
         tree.resize(4*n + 5); lazy.resize(4*n + 5); who.resize(4*n + 5);
         init(1, 0, n-1);
     }
 
-    void init(int node, int l, int r){
+    void init(ll node, ll l, ll r){
         who[node] = l;
         if(l != r){
             init(node*2, l, (l+r)/2);
@@ -26,11 +26,11 @@ struct SegTree{
         }
     }
 
-    void update(int i1, int i2, ll T){ // add i1~i2, T
+    void update(ll i1, ll i2, ll T){ // add i1~i2, T
         U(1, 0, n-1, i1, i2, T);
     }
 
-    void U(int node, int l, int r, int i1, int i2, ll T){
+    void U(ll node, ll l, ll r, ll i1, ll i2, ll T){
         flushlazy(node, l, r);
         if(i2 < l or r < i1) return;
         if(i1 <= l and r <= i2){
@@ -45,11 +45,11 @@ struct SegTree{
         tree[node] = max(tree[node*2], tree[node*2 + 1]);
     }
 
-    pll query(int i1, int i2){
+    pll query(ll i1, ll i2){
         return Q(1, 0, n-1, i1, i2);
     }
 
-    pll Q(int node, int l, int r, int i1, int i2){
+    pll Q(ll node, ll l, ll r, ll i1, ll i2){
         flushlazy(node, l, r);
         if(i2 < l or r < i1) return {-0x3f3f3f3f, -1};
         if(i1 <= l and r <= i2) return {tree[node], who[node]};
@@ -58,7 +58,7 @@ struct SegTree{
         return max(q1, q2);
     }
 
-    void flushlazy(int node, int l, int r){
+    void flushlazy(ll node, ll l, ll r){
         tree[node] += lazy[node];
         if(l != r){
             lazy[node*2] += lazy[node];
@@ -70,59 +70,77 @@ struct SegTree{
 
 #define MX 200005
 
-int n;
-vector<int> graph[MX];
-int tp[MX];
-int depth[MX];
-int sparse[MX][20];
+ll n;
+vector<ll> graph[MX];
+ll tp[MX];
+ll depth[MX];
+ll sparse[MX][25];
 pii timeline[MX];
-vector<int> ett(1, 0);
-int ett_inv[MX];
-vector<array<int, 3>> path_belong[MX];
+ll ett[MX];
+ll ett_inv[MX];
 SegTree SG(MX);
+vector<array<ll, 3>> task[MX];
 
-ll ans_real = 0;
-pll path_real;
 struct solve{
-    int clk = 0;
+    ll clk = 0;
     solve(){
         cin >> n;
-        for(int i=0; i<n-1; i++){
-            int a,b; cin >> a >> b;
+        for(ll i=0; i<n-1; i++){
+            ll a,b; cin >> a >> b;
             graph[a].push_back(b);
             graph[b].push_back(a);
         }
         depth[1] = 1;
         DFS(1, 0);
-        for(int i=1; i<=n; i++) sparse[i][0] = tp[i];
-        for(int d=1; d<20; d++){
-            for(int i=1; i<=n; i++){
+        for(ll i=1; i<=n; i++) sparse[i][0] = tp[i];
+        for(ll d=1; d<25; d++){
+            for(ll i=1; i<=n; i++){
                 sparse[i][d] = sparse[sparse[i][d-1]][d-1];
             }
         }
-        int m; cin >> m;
-        for(int i=0; i<m; i++){
-            int i1, i2, val;
+        ll m; cin >> m;
+        for(ll i=0; i<m; i++){
+            ll i1, i2, val;
             cin >> i1 >> i2 >> val;
             assert(i1 != i2);
-            path_belong[LCA(i1, i2)].push_back({i1, i2, val});
+            if(ett_inv[i1] > ett_inv[i2]){
+                swap(i1, i2);
+            }
+            ll l = LCA(i1, i2);
+            if(l == i1){
+                i1 = LCA1(i1, i2);
+                addbox({1, timeline[i1].X - 1}, timeline[i2], val);
+                addbox(timeline[i2], {timeline[i1].Y + 1, n}, val);
+            }
+            else{
+                assert(i1 != l);
+                addbox(timeline[i1], timeline[i2], val);
+            }
         }
-        DFS1(1);
-        if(ans_real == 0) cout << "1 2 ";
-        else {
-            assert(path_real.X and path_real.Y);
-            cout << path_real.X << " " << path_real.Y << " ";
+        ll ans = 0;
+        pll ans_real = {1, 2};
+        for(ll i=1; i<=n; i++){
+            for(auto &[i1, i2, val]:task[i]){
+                SG.update(i1, i2, val);
+            }
+            pll T = SG.query(1, n);
+            assert(T.X == SG.query(T.Y, T.Y).X);
+            if(ans < T.X){
+                ans = T.X;
+                ans_real = {ett[i], ett[T.Y]};
+            }
         }
-        cout << ans_real << "\n";
+        if(m == 0) assert(ans == 0);
+        cout << ans_real.X << " " << ans_real.Y << " " << ans << "\n";
     }
 
-    void DFS(int node, int rt){
+    void DFS(ll node, ll rt){
         clk++;
         timeline[node].X = clk; 
-        ett_inv[node] = ett.size();
-        ett.push_back(node);
+        ett_inv[node] = clk;
+        ett[clk] = node;
         
-        for(int i:graph[node]){
+        for(ll i:graph[node]){
             if(i != rt){
                 tp[i] = node;
                 depth[i] = depth[node] + 1;
@@ -133,65 +151,41 @@ struct solve{
         timeline[node].Y = clk;
     }
 
-    void DFS1(int node){
-        for(int i:graph[node]){
-            if(i != tp[node]) DFS1(i);
-        }
-
-        for(auto &[i1, i2, val]:path_belong[node]){
-            if(i1 == node or i2 == node){
-                int i = i1 + i2 - node;
-                SG.update(timeline[ett_inv[i]].X, timeline[ett_inv[i]].Y, val);
-            }
-        }
-
-        vector<pll> v;
-        for(int i:graph[node]){
-            if(i != tp[node]){
-                v.push_back(SG.query(timeline[ett_inv[i]].X, timeline[ett_inv[i]].Y));
-            }
-        }
-        sort(all(v), greater<pll>());
-        ll mxans = 0;
-        pll pathans;
-        if(v.size() >= 1){
-            mxans = v[0].X; pathans = {ett[v[0].Y], node};
-        }
-        if(v.size() >= 2){
-            mxans = v[0].X + v[1].X; pathans = {ett[v[0].Y], ett[v[1].Y]};
-        }
-        for(auto &[i1, i2, val]:path_belong[node]){
-            if(i1 != node and i2 != node){
-                pll v1 = SG.query(timeline[ett_inv[i1]].X, timeline[ett_inv[i1]].Y);
-                pll v2 = SG.query(timeline[ett_inv[i2]].X, timeline[ett_inv[i2]].Y);
-                if(mxans < v1.X + v2.X + val){
-                    mxans = v1.X + v2.X + val;
-                    pathans = {ett[v1.Y], ett[v2.Y]};
-                }
-            }
-        }
-        if(ans_real < mxans){
-            ans_real = mxans;
-            path_real = pathans;
-        }
-    }
-
-    int LCA(int l, int r){
+    ll LCA(ll l, ll r){
         if(depth[l] < depth[r]) swap(l, r);
         if(depth[l] > depth[r]){
-            for(int d=19; d>=0; d--){
-                int o = sparse[l][d];
+            for(ll d=24; d>=0; d--){
+                ll o = sparse[l][d];
                 if(depth[o] >= depth[r]) l = o;
             }
         }
         if(l == r) return l;
-        for(int d=19; d>=0; d--){
+        for(ll d=24; d>=0; d--){
             if(sparse[l][d] != sparse[r][d]){
                 l = sparse[l][d];
                 r = sparse[r][d];
             }
         }
         return tp[l];
+    }
+
+    ll LCA1(ll l, ll r){
+        if(depth[l] < depth[r]) swap(l, r);
+        if(depth[l] > depth[r]){
+            for(ll d=24; d>=0; d--){
+                ll o = sparse[l][d];
+                if(depth[o] > depth[r]) l = o;
+            }
+        }
+        return l;
+    }
+
+    void addbox(pii l, pii r, ll val){
+        assert(l.Y < r.X);
+        if(l.X > l.Y) return;
+        if(r.X > r.Y) return;
+        task[l.X].push_back({r.X, r.Y, val});
+        task[l.Y+1].push_back({r.X, r.Y, -val});
     }
 };
 

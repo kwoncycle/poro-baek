@@ -179,13 +179,11 @@ int query(int node, int start, int end, int l, int r, vector<int> &segtree, vect
 	return query(node*2, start, mid, l, r, segtree, arr) + query(node*2+1, mid+1, end, l, r, segtree, arr);
 }
  
-class djs
+struct DJS
 {
     int n;
     vector<int> par;
- 
-public:
-    djs(int n) : n(n) {
+    DJS(int _n) : n(_n) {
         par.resize(n);
         for(int i=0; i<n; i++) par[i] = i;
     }

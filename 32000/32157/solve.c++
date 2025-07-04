@@ -92,15 +92,12 @@ public:
     }
 };
 
-int main(){
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr); cout.tie(nullptr);
-    ll n, w, t; cin >> n >> w >> t;
+ll sol1(ll n, ll w, ll t, vector<pll> &v){
     int st = 0, O = n+1, L = n+2, S = n+3, ed = n+4;
     vector<Edge> edges;
 
     for(int i=1; i<=n; i++){
-        ll s, l; cin >> s >> l;
+        auto [s, l] = v[i];
         if(s < l) l = s;
 
         edges.push_back(Edge(st, i, 1, 0, 0));
@@ -113,5 +110,54 @@ int main(){
     edges.push_back(Edge(L, ed, w, 0, 0));
     edges.push_back(Edge(S, ed, n-t-w, 0, 0));
     MCMF ans(ed+1, st, ed, edges);
-    cout << ans.mincost << "\n";
+    return ans.mincost;
+}
+
+ll sol2(ll n, ll w, ll t, vector<pll> &v){
+    if(w + t > n) w = n - t;
+    for(int i=1; i<=n; i++){
+        if(v[i].X < v[i].Y) v[i].Y = v[i].X;
+        v[i].X -= v[i].Y;
+    }
+    vector<int> id0(n+1), id1(n+1);
+    for(int i=1; i<=n; i++) id0[i] = i, id1[i] = i;
+    sort(id0.begin()+1, id0.end(), [&](int l, int r){
+        return v[l].X < v[r].X;
+    });
+    sort(id1.begin()+1, id1.end(), [&](int l, int r){
+        return v[l].Y > v[r].Y;
+    });
+    set<int> chosen0, chosen1;
+    for(int i=1; i<=w; i++){
+        chosen0.insert(id0[i]);
+    }
+    int nxt0 = w+1, nxt1 = t+1;
+    int cnt1 = 0;
+    while(nxt1 <= n and chosen0.find(id1[nxt1]) != chosen0.end()) nxt1++;
+    for(int i=1; i<=n && cnt1 < t; i++){
+        if(chosen0.find(id1[i]) == chosen0.end()){
+            chosen1.insert(id1[i]); cnt1++;
+            while(nxt0 <= n and chosen1.find(id0[nxt0]) != chosen1.end()) nxt0++;
+        }
+        else{
+            if(v[id1[i]].Y - v[id1[nxt1]].Y >= v[id0[nxt0]].X - v[id1[i]].X){
+                chosen1.insert(id1[i]); cnt1++;
+                chosen0.erase(id1[i]); chosen0.insert(id0[nxt0]);
+                while(nxt0 <= n and chosen1.find(id0[nxt0]) != chosen1.end()) nxt0++;
+            }
+            else{
+                nxt1++;
+                while(nxt1 <= n and chosen0.find(id1[nxt1]) != chosen0.end()) nxt1++;
+            }
+        }
+    }
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr); cout.tie(nullptr);
+    ll n, w, t; cin >> n >> w >> t;
+    vector<pll> v(n+1);
+    for(int i=1; i<=n; i++) cin >> v[i].X >> v[i].Y; // X: s
+    ll ans1 = sol1(n, w, t, v);
 }

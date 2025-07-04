@@ -36,18 +36,18 @@ struct SegTree {
 		return f(L, R);
 	}
 };
-
+/*
+SegTree<type, sz, F> ST(default, f)와 같이 선언해주면 노드의 자료형이 type이며 
+노드의 기본 값이 default이고, 세그먼트 트리의 인덱스가 [1, 2^sz] 범위이고, 
+두 노드를 합칠 때 f(node1, node2)를 이용하는 세그먼트 트리를 생성할 수 있습니다.*/
+// USAGE: SegTree<int, 20, F> ST(1, f);
 struct F {
 	ll operator()(ll& a, ll& b) {
 		return max(a, b);
 	}
 } f;
 
-/*
-SegTree<type, sz, F> ST(default, f)와 같이 선언해주면 노드의 자료형이 type이며 
-노드의 기본 값이 default이고, 세그먼트 트리의 인덱스가 [1, 2^sz] 범위이고, 
-두 노드를 합칠 때 f(node1, node2)를 이용하는 세그먼트 트리를 생성할 수 있습니다.*/
-// USAGE: SegTree<int, 20, F> ST(1, f);
+
 
 int main(){
 
